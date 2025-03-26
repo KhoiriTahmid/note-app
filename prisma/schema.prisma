@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                        String                     @id @default(uuid())
+  username                  String                     @unique @db.VarChar(50)
+  email                     String                     @unique @db.VarChar(255)
+  password                  String                     @db.VarChar(60)
+  role                      Role                       @default(user)
+  endlessTasks              EndlessTask[]
+  notes                     Note[]
+  completedTasks            RelationEndlessCompleted[]
+  relationNoteRepeatedTasks RelationNoteRepeatedTask[]
+  tasks                     Task[]
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  date      DateTime
+  label     String?  @db.VarChar(50)
+  text      String?
+  files     Json?
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  tasks     Task[]
+
+  @@unique([accountId, date])
+}
+
+model Task {
+  id        String  @id @default(uuid())
+  text      String  @db.VarChar(200)
+  done      Boolean @default(false)
+  accountId String
+  noteId    String
+  startTime String  @db.VarChar(8)
+  endTime   String  @db.VarChar(8)
+  account   Account @relation(fields: [accountId], references: [id])
+  note      Note    @relation(fields: [noteId], references: [id])
+
+  @@index([accountId, id])
+  @@index([noteId, accountId])
+}
+
+model RelationNoteRepeatedTask {
+  date           DateTime
+  repeatedTaskId String
+  done           Boolean      @default(false)
+  accountId      String
+  id             String       @id @default(uuid())
+  account        Account      @relation(fields: [accountId], references: [id])
+  repeatedTask   RepeatedTask @relation(fields: [repeatedTaskId], references: [id])
+
+  @@unique([date, repeatedTaskId, accountId])
+}
+
+model RepeatedTask {
+  id                        String                     @id @default(uuid())
+  text                      String                     @db.VarChar(200)
+  startTime                 String                     @db.VarChar(8)
+  endTime                   String                     @db.VarChar(8)
+  relationNoteRepeatedTasks RelationNoteRepeatedTask[]
+}
+
+model EndlessTask {
+  id             String                     @id @default(uuid())
+  text           String                     @db.VarChar(200)
+  startDate      DateTime
+  repeatType     RepeatType
+  accountId      String
+  startTime      String                     @db.VarChar(8)
+  endTime        String                     @db.VarChar(8)
+  account        Account                    @relation(fields: [accountId], references: [id])
+  completedTasks RelationEndlessCompleted[]
+}
+
+model RelationEndlessCompleted {
+  id          String      @id @default(uuid())
+  date        DateTime
+  taskId      String
+  accountId   String
+  account     Account     @relation(fields: [accountId], references: [id])
+  endlessTask EndlessTask @relation(fields: [taskId], references: [id])
+
+  @@unique([accountId, date, taskId])
+  @@index([accountId, date, taskId])
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum RepeatType {
+  daily
+  weekly
+  monthly
+  yearly
+}
