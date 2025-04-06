@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, DefaultValuePipe, ParseIntPipe, ParseUUIDPipe, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { RepeatedTaskService } from './repeated-task.service';
 import { ValidationService } from 'src/common/validation.service';
 import { createRepeatedTaskDTO, createRepeatedTaskSchema, updateRepeatedTaskById, updateRepeatedTaskByIdDTO, updateStatusOrRemoveRepeatedTask, updateStatusOrRemoveRepeatedTaskDTO } from './repeatedTask.schema';
@@ -25,9 +25,9 @@ export class RepeatedTaskController {
 
     @Get('/week')
     async getWeeklyRepeatedTask(
-        @GetUser('id') accountId: string,
-        @Query('plus', ParseIntPipe) plus:number,
-        @Query('mines', ParseIntPipe) mines:number,
+        @GetUser('id') accountId:string,
+        @Query('plus', new DefaultValuePipe(0), new ParseIntPipe()) plus:number, 
+        @Query('mines', new DefaultValuePipe(0), new ParseIntPipe()) mines:number, 
     ){
         return await this.repeatedTaskService.getWeeklyRepeatedTask(accountId, plus, mines);
     }
@@ -48,7 +48,7 @@ export class RepeatedTaskController {
         return await this.repeatedTaskService.updateRepeatedTask(id, reqBody)
     }
 
-    @Post('update/status/:date')
+    @Post('update/status')
     async updateStatusRepeatedTask(
         @GetUser('id') accountId: string,
         @Body(new ValidationService(updateStatusOrRemoveRepeatedTask)) reqBody: updateStatusOrRemoveRepeatedTaskDTO

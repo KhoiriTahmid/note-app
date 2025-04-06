@@ -21,63 +21,61 @@ export class RepeatedTaskService {
         return successResponseMaker(`success create ${res} repeated task`, res)
     }
     
-        async getRepeatedTaskByDate(
-            accountId: string,
-            date: string
-        ){
-            const dateInFormat = validateAndReturnDate(date)
-            const datas = await this.prismaService.relationNoteRepeatedTask.findMany({where:{accountId, date:dateInFormat}, omit:{accountId:true}})
-            const ids = datas.map(e=>e.repeatedTaskId)
-            const res = await this.prismaService.repeatedTask.findMany({where:{id:{in:ids}}, orderBy:{startTime:'asc'}})
-    
-            if(res.length !== ids.length) throw new InternalServerErrorException()
-    
-            const resInMap = new Map(res.map(({id, ...e})=>[id, e]))
-    
-            const value = datas.map(e=>({...e, ...resInMap.get(e.repeatedTaskId)}))
-            resInMap.clear()
-            return successResponseMaker("berhasil get", value)
-        }
-    
-        async getWeeklyRepeatedTask(
-            accountId: string,
-            plus:number,
-            mines:number
-        ){
-            const {sundayDate, saturdayDate} = getSundayAndSaturdayDate(plus, mines)
-            
-            const datas = await this.prismaService.relationNoteRepeatedTask.findMany({where:{accountId, date:{gte:sundayDate, lte:saturdayDate}}, omit:{accountId:true}, orderBy:{date:'asc'}})
-            const ids = datas.map(e=>e.repeatedTaskId)
-            const res = await this.prismaService.repeatedTask.findMany({where:{id:{in:ids}}})
-    
-            if(res.length !== ids.length) throw new InternalServerErrorException()
-    
-            const resInMap = new Map(res.map(({id, ...e})=>[id, e]))
-    
-            const value = datas.map(e=>({...e, ...resInMap.get(e.repeatedTaskId)}))
-            resInMap.clear()
+    async getRepeatedTaskByDate(
+        accountId: string,
+        date: string
+    ){
+        const dateInFormat = validateAndReturnDate(date)
+        const datas = await this.prismaService.relationNoteRepeatedTask.findMany({where:{accountId, date:dateInFormat}, omit:{accountId:true}})
+        const ids = datas.map(e=>e.repeatedTaskId)
+        const res = await this.prismaService.repeatedTask.findMany({where:{id:{in:ids}}, orderBy:{startTime:'asc'}})
 
-            let final: { [key: number]: typeof value } = {}; 
-            for (const e of value) {
-                if(!final[e.date.getDay()]) final[e.date.getDay()] = []
-                final[e.date.getDay()].push(e)
-            }
-            
-            for (let index = 0; index < 7; index++) {
-                if(!final[index]){
-                    final[index] = [];
-                    continue;
-                }
+        if(res.length !== ids.length) throw new InternalServerErrorException()
 
-                final[index].sort((a,b)=>{
-                    const secondA = Number(a.startTime?.substring(0,2))*3600 + Number(a.startTime?.substring(3,5))*60 + Number(a.startTime?.substring(6));
-                    const secondB = Number(b.startTime?.substring(0,2))*3600 + Number(b.startTime?.substring(3,5))*60 + Number(b.startTime?.substring(6));
-                    return secondA-secondB
-                })
-            }
-            
-            return successResponseMaker("berhasil get", final)
+        const resInMap = new Map(res.map(({id, ...e})=>[id, e]))
+
+        const value = datas.map(e=>({...e, ...resInMap.get(e.repeatedTaskId)}))
+        resInMap.clear()
+        return successResponseMaker("berhasil get", value)
+    }
+
+    async getWeeklyRepeatedTask(
+        accountId: string,
+        plus:number,
+        mines:number
+    ){
+        const {sundayDate, saturdayDate} = getSundayAndSaturdayDate(plus, mines)
+        
+        const datas = await this.prismaService.relationNoteRepeatedTask.findMany({where:{accountId, date:{gte:sundayDate, lte:saturdayDate}}, omit:{accountId:true}, orderBy:{date:'asc'}})
+        const ids = datas.map(e=>e.repeatedTaskId)
+        const res = await this.prismaService.repeatedTask.findMany({where:{id:{in:ids}}})
+
+        const resInMap = new Map(res.map(({id, ...e})=>[id, e]))
+
+        const value = datas.map(e=>({...e, ...resInMap.get(e.repeatedTaskId)}))
+        resInMap.clear()
+
+        let final: { [key: number]: typeof value } = {}; 
+        for (const e of value) {
+            if(!final[e.date.getDay()]) final[e.date.getDay()] = []
+            final[e.date.getDay()].push(e)
         }
+        
+        for (let index = 0; index < 7; index++) {
+            if(!final[index]){
+                final[index] = [];
+                continue;
+            }
+
+            final[index].sort((a,b)=>{
+                const secondA = Number(a.startTime?.substring(0,2))*3600 + Number(a.startTime?.substring(3,5))*60 + Number(a.startTime?.substring(6));
+                const secondB = Number(b.startTime?.substring(0,2))*3600 + Number(b.startTime?.substring(3,5))*60 + Number(b.startTime?.substring(6));
+                return secondA-secondB
+            })
+        }
+        
+        return successResponseMaker("berhasil get", final)
+    }
     
     async updateRepeatedTask(
         id: string,

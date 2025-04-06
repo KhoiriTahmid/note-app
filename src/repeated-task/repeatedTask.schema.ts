@@ -26,15 +26,15 @@ export type updateRepeatedTaskByIdDTO = z.infer<typeof updateRepeatedTaskById>
 
 export const updateStatusOrRemoveRepeatedTask = z.object({
     repeatedTaskId: z.string().uuid(),
-        date: z.string()
-        .refine((date) => !isNaN(Date.parse(date)), { message: "Invalid date format" }) 
-        .transform((date) => {
-            const parsedDate = new Date(date);
-            parsedDate.setUTCHours(0, 0, 0, 0);
-            return parsedDate;
-        }) 
-        .refine((date) => date >= new Date("2025-01-01"), { message: "Date must be after 2025-01-01" }) 
-        .refine((date) => date <= new Date("2100-12-31"), { message: "Date must be before 2100-12-31" }),
+    date: z.string()
+    .refine((date) => !isNaN(Date.parse(date)), { message: "Invalid date format" }) 
+    .transform((date) => {
+        const parsedDate = new Date(date);
+        parsedDate.setUTCHours(0, 0, 0, 0);
+        return parsedDate;
+    }) 
+    .refine((date) => date >= new Date("2025-01-01"), { message: "Date must be after 2025-01-01" }) 
+    .refine((date) => date <= new Date("2100-12-31"), { message: "Date must be before 2100-12-31" }),
 })
 export type updateStatusOrRemoveRepeatedTaskDTO = z.infer<typeof updateStatusOrRemoveRepeatedTask>
 
