@@ -32,7 +32,7 @@ jobs:
         run: "deno install"
 
       - name: Build step
-        run: "deno compile --unstable --allow-all -o my_app main.ts"
+        run: "deno compile --unstable --allow-all -o my_app note-app/src/main.ts"
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
@@ -41,4 +41,4 @@ jobs:
           entrypoint: "./src/main.ts"
           root: "note-app"
           
-          exclude: ./dist
+          
