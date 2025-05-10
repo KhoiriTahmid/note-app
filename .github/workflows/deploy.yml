@@ -39,6 +39,6 @@ jobs:
         with:
           project: "khoiri-note-app"
           entrypoint: "main.ts"
-          root: "src"
+          root: "/src"
           
           
